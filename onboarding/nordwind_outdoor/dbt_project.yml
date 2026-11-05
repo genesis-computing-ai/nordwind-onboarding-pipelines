@@ -1,0 +1,23 @@
+name: nordwind_outdoor
+version: '1.0.0'
+config-version: 2
+profile: nordwind_outdoor
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+vars:
+  source_name: nordwind_outdoor
+  # Owner decision (OWNER_DECISIONS.md 1, gabriel.garrett, 2026-11-05 21:32:04 UTC): order times are German time.
+  source_time_zone: Europe/Berlin
+  drop_stage: ANALYTICS_DEV.PIPELINES.NORDWIND_OUTDOOR_DROP
+  prod_drop_stage: PIPELINES.NORDWIND_OUTDOOR_DROP
+  file_format: PIPELINES.NORDWIND_OUTDOOR_CSV
+  file_pattern: '.*nordwind_orders_[0-9]{4}-[0-9]{2}-[0-9]{2}[.]csv'
+
+models:
+  nordwind_outdoor:
+    +persist_docs:
+      relation: true
+      columns: true

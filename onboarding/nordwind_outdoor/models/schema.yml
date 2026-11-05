@@ -1,0 +1,87 @@
+version: 2
+
+models:
+  - name: order_line
+    description: "Order lines: one row per order line per partner, holding the latest state of the line."
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: source_name
+        data_type: varchar(64)
+        description: "Which partner the row came from: one short lower-case name per onboarded partner, the same on every row of that partner."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: order_id
+        data_type: varchar(64)
+        description: "The order number exactly as the partner issues it, trimmed of spaces and upper-cased."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: line_number
+        data_type: number(9,0)
+        description: "Position of the line within its order, starting at 1. With SOURCE_NAME and ORDER_ID it identifies a row."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: ordered_at_utc
+        data_type: timestamp_ntz
+        description: "When the order was placed, as a UTC instant. A time sent without a zone is converted from the partner's local time zone, which is confirmed with the partner's owner and never assumed."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: order_date
+        data_type: date
+        description: "The calendar day the order was placed in the partner's local time zone: the business day daily sales count it on."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: customer_ref
+        data_type: varchar(64)
+        description: "The customer identifier the partner sends, trimmed; NULL for a guest checkout."
+      - name: sku
+        data_type: varchar(64)
+        description: "The article code, trimmed of spaces and upper-cased."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: quantity
+        data_type: number(9,0)
+        description: "Units ordered on the line; at least 1."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: unit_price
+        data_type: number(18,2)
+        description: "Price of one unit before discount, in CURRENCY_CODE. A price written with a decimal comma (1.249,50) is read as 1249.50."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: discount_pct
+        data_type: number(5,2)
+        description: "Line discount in percent, 0 to 100; 0 when the partner gives none. 10, 10% and 10 % all mean 10."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: net_amount
+        data_type: number(18,2)
+        description: "QUANTITY x UNIT_PRICE x (1 - DISCOUNT_PCT / 100), rounded half up to 2 decimals."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: currency_code
+        data_type: varchar(3)
+        description: "ISO 4217 code, upper case (EUR, USD)."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: line_status
+        data_type: varchar(16)
+        description: "The latest status of the line: one of PLACED, SHIPPED, CANCELLED, RETURNED."
+        constraints: [{type: not_null}]
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['PLACED', 'SHIPPED', 'CANCELLED', 'RETURNED']
+      - name: ship_country
+        data_type: varchar(2)
+        description: "ISO 3166-1 alpha-2 code of the delivery country (DE, AT, CH); NULL when the partner gives none."
+      - name: source_file
+        data_type: varchar(255)
+        description: "Name of the file the current values of the row came from, without its folder."
+        constraints: [{type: not_null}]
+        tests: [not_null]
+      - name: loaded_at_utc
+        data_type: timestamp_ntz
+        description: "When the pipeline loaded that file, UTC."
+        constraints: [{type: not_null}]
+        tests: [not_null]
