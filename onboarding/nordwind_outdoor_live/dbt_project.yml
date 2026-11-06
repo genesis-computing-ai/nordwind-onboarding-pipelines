@@ -1,0 +1,28 @@
+name: nordwind_outdoor_live
+version: '1.0.0'
+config-version: 2
+profile: nordwind_outdoor_live
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+vars:
+  # Partner identity (kickoff, OWNER_DECISIONS 2)
+  source_name: nordwind_outdoor_live
+  # Owner decision 1 (Gabriel Garrett, 2026-11-06 23:32:18 UTC): order times arrive in Europe/Berlin local time
+  source_time_zone: Europe/Berlin
+  # Dev stage over s3://genesis-lab-data-730335510242/data-onboarding/nordwind-outdoor-live/
+  drop_stage: ANALYTICS_DEMO_LIVE.PIPELINES.NORDWIND_OUTDOOR_LIVE_DROP
+  # Production stage, inside the production database (created by deploy/snowflake/nordwind_outdoor_live.sql)
+  prod_drop_stage: PIPELINES.NORDWIND_OUTDOOR_LIVE_DROP
+  # File format, inside each target's own database
+  file_format: PIPELINES.NORDWIND_OUTDOOR_LIVE_CSV
+  # The one feed: daily order exports. merchant.json is reference material and is never loaded.
+  file_pattern: '.*nordwind_orders_[0-9]{4}-[0-9]{2}-[0-9]{2}[.]csv'
+
+models:
+  nordwind_outdoor_live:
+    +persist_docs:
+      relation: true
+      columns: true

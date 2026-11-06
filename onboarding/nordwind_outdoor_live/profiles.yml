@@ -1,0 +1,21 @@
+nordwind_outdoor_live:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: ''
+      user: ''
+      role: GENESIS_DATA_AGENT
+      warehouse: XSMALL
+      database: ANALYTICS_DEMO_LIVE
+      schema: NORDWIND_OUTDOOR_LIVE
+      threads: 1
+    prod:
+      type: snowflake
+      account: ''
+      user: ''
+      role: GENESIS_DATA_AGENT
+      warehouse: XSMALL
+      database: <PRODUCTION_DATABASE>
+      schema: NORDWIND_OUTDOOR_LIVE
+      threads: 1

@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: Raw Nordwind Outdoor files as landed by this pipeline, every file column as text.
+    schema: NORDWIND_OUTDOOR_LIVE_BRONZE
+    tables:
+      - name: nordwind_orders_raw
+        description: Every row of every nordwind_orders_<YYYY-MM-DD>.csv file, with the file it came from and when it was loaded.
