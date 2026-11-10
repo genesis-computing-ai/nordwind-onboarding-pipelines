@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: The pipeline's own bronze tables, one per feed, loaded by the order_line model's pre_hooks.
+    schema: NORDWIND_OUTDOOR_BRONZE
+    tables:
+      - name: nordwind_orders_raw
+        description: Every row of every nordwind_orders_YYYY-MM-DD.csv file, all columns as text.

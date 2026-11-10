@@ -1,0 +1,24 @@
+name: nordwind_outdoor
+version: '1.0.0'
+config-version: 2
+profile: nordwind_outdoor
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+vars:
+  # Owner decisions (OWNER_DECISIONS.md), visible configuration, never literals in the SQL
+  source_name: nordwind_outdoor
+  source_time_zone: Europe/Berlin   # confirmed by the owner, 2026-11-09 23:57 UTC
+  # Where the files are read from
+  drop_stage: ANALYTICS_DEV.PIPELINES.NORDWIND_OUTDOOR_DROP      # dev stage over the bucket folder
+  prod_drop_stage: PIPELINES.NORDWIND_OUTDOOR_DROP               # production stage, inside the production database
+  file_format: PIPELINES.NORDWIND_OUTDOOR_CSV                    # inside each target's database
+  file_pattern: '.*nordwind_orders_.*[.]csv'                     # the feed's daily files only; merchant.json is reference, never loaded
+
+models:
+  nordwind_outdoor:
+    +persist_docs:
+      relation: true
+      columns: true
