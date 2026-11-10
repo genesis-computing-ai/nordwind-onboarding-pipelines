@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: NORDWIND_OUTDOOR_2_BRONZE
+    description: Raw files of the Nordwind Outdoor order feed, every file column as text, one row per file line.
+    tables:
+      - name: nordwind_orders_raw
+        description: Every line of every nordwind_orders_YYYY-MM-DD.csv file, as sent, with the file it came from and when it was loaded.
