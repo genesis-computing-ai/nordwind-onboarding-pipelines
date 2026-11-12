@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: orders
+    description: Nordwind Outdoor orders, one row per order (key ORDER_NO).
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: order_no
+        data_type: varchar(20)
+        description: Nordwind order number, e.g. NW-104000. Primary key.
+        constraints: [{type: not_null}]
+      - name: order_created_at_utc
+        data_type: timestamp_ntz
+        description: When the order was placed, in UTC (sent as German local time).
+      - name: customer_id
+        data_type: varchar(20)
+        description: Nordwind customer number, e.g. C-21680; NULL when the order carries none.
+      - name: ship_to_country_code
+        data_type: varchar(2)
+        description: Delivery country, ISO 3166-1 alpha-2 (DE, AT, CH).
+      - name: currency_code
+        data_type: varchar(3)
+        description: Order currency, ISO 4217.
+      - name: exported_at_utc
+        data_type: timestamp_ntz
+        description: When Nordwind's shop exported this version of the order, in UTC.
+      - name: source_name
+        data_type: varchar(50)
+        description: "Source of the row: 'nordwind_outdoor_3'."
+        constraints: [{type: not_null}]
+      - name: source_file
+        data_type: varchar(200)
+        description: File name the row was read from.
+      - name: loaded_at
+        data_type: timestamp_tz
+        description: When that file was loaded.
+
+  - name: order_lines
+    description: Nordwind Outdoor order lines, one row per order line (key ORDER_NO, LINE_NO).
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: order_no
+        data_type: varchar(20)
+        description: Order the line belongs to (ORDERS.ORDER_NO).
+        constraints: [{type: not_null}]
+      - name: line_no
+        data_type: number(5,0)
+        description: Position of the line within the order.
+        constraints: [{type: not_null}]
+      - name: article_code
+        data_type: varchar(40)
+        description: Nordwind article code, upper case, e.g. BOT-HIKE-43.
+      - name: quantity
+        data_type: number(9,0)
+        description: Units ordered.
+      - name: unit_price
+        data_type: number(12,2)
+        description: Price of one unit, in the order currency.
+      - name: discount_pct
+        data_type: number(5,2)
+        description: Discount on the line, in percent (0 = none).
+      - name: line_status
+        data_type: varchar(20)
+        description: placed, shipped, cancelled or returned.
+      - name: source_name
+        data_type: varchar(50)
+        description: "Source of the row: 'nordwind_outdoor_3'."
+        constraints: [{type: not_null}]
+      - name: source_file
+        data_type: varchar(200)
+        description: File name the row was read from.
+      - name: loaded_at
+        data_type: timestamp_tz
+        description: When that file was loaded.
