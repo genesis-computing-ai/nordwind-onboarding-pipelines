@@ -1,0 +1,27 @@
+name: nordwind_outdoor_3
+version: '1.0.0'
+config-version: 2
+profile: nordwind_outdoor_3
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+vars:
+  source_name: nordwind_outdoor_3
+  # Owner decision 1 (OWNER_DECISIONS.md): order times arrive in German local time
+  source_time_zone: Europe/Berlin
+  # Dev stage over s3://genesis-lab-data-730335510242/data-onboarding/nordwind-outdoor/
+  drop_stage: ANALYTICS_DEV.PIPELINES.NORDWIND_OUTDOOR_DROP
+  # Production stage, inside the production database (created by deploy/snowflake/nordwind_outdoor_3.sql)
+  prod_drop_stage: PIPELINES.NORDWIND_OUTDOOR_3_DROP
+  # File format, inside each target's database
+  file_format: PIPELINES.NORDWIND_OUTDOOR_3_CSV
+  # The daily order feed only; merchant.json is reference and never loaded
+  file_pattern: '.*nordwind_orders_[0-9]{4}-[0-9]{2}-[0-9]{2}[.]csv'
+
+models:
+  nordwind_outdoor_3:
+    +persist_docs:
+      relation: true
+      columns: true
