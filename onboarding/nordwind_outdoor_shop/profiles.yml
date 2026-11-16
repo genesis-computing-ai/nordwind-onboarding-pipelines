@@ -1,0 +1,21 @@
+nordwind_outdoor_shop:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: ''
+      user: ''
+      role: GENESIS_SVC_ROLE
+      warehouse: XSMALL
+      database: ANALYTICS_DEV
+      schema: NORDWIND_OUTDOOR_SHOP
+      threads: 4
+    prod:
+      type: snowflake
+      account: ''
+      user: ''
+      role: GENESIS_SVC_ROLE
+      warehouse: XSMALL
+      database: ANALYTICS
+      schema: NORDWIND_OUTDOOR_SHOP
+      threads: 4

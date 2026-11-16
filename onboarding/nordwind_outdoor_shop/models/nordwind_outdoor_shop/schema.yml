@@ -1,0 +1,210 @@
+version: 2
+
+models:
+  - name: customers
+    description: "Customers: one row per customer account per partner, holding its latest details."
+    config:
+      contract: {enforced: true}
+      pre_hook:
+        - "create schema if not exists {{ target.database }}.NORDWIND_OUTDOOR_SHOP_BRONZE"
+        - >-
+          {% if flags.FULL_REFRESH and target.name != 'prod' %}create or replace table{% else %}create table if not exists{% endif %}
+          {{ target.database }}.NORDWIND_OUTDOOR_SHOP_BRONZE.CUSTOMERS_RAW (CUSTOMER varchar, REGISTERED varchar, TYPE varchar, CITY varchar, COUNTRY varchar, NEWSLETTER varchar, EXPORTED_AT varchar,
+          _SOURCE_FILE varchar, _FILE_ROW_NUMBER number, _LOADED_AT timestamp_ltz default current_timestamp())
+        - >-
+          copy into {{ target.database }}.NORDWIND_OUTDOOR_SHOP_BRONZE.CUSTOMERS_RAW (CUSTOMER, REGISTERED, TYPE, CITY, COUNTRY, NEWSLETTER, EXPORTED_AT, _SOURCE_FILE, _FILE_ROW_NUMBER)
+          from (select $1, $2, $3, $4, $5, $6, $7, metadata$filename, metadata$file_row_number
+          from @{{ target.database ~ '.' ~ var('prod_drop_stage') if target.name == 'prod' else var('drop_stage') }})
+          pattern = '{{ var("file_patterns")["customers_raw"] }}'
+          file_format = (format_name = '{{ target.database }}.{{ var("file_format") }}')
+          force = {{ 'TRUE' if (flags.FULL_REFRESH and target.name != 'prod') else 'FALSE' }}
+        - >-
+          {% if flags.FULL_REFRESH and target.name != 'prod' %}create or replace table{% else %}create table if not exists{% endif %}
+          {{ target.database }}.NORDWIND_OUTDOOR_SHOP_BRONZE.ARTICLES_RAW (ARTICLE varchar, NAME varchar, CATEGORY varchar, PRICE varchar, CUR varchar, ACTIVE varchar, EXPORTED_AT varchar,
+          _SOURCE_FILE varchar, _FILE_ROW_NUMBER number, _LOADED_AT timestamp_ltz default current_timestamp())
+        - >-
+          copy into {{ target.database }}.NORDWIND_OUTDOOR_SHOP_BRONZE.ARTICLES_RAW (ARTICLE, NAME, CATEGORY, PRICE, CUR, ACTIVE, EXPORTED_AT, _SOURCE_FILE, _FILE_ROW_NUMBER)
+          from (select $1, $2, $3, $4, $5, $6, $7, metadata$filename, metadata$file_row_number
+          from @{{ target.database ~ '.' ~ var('prod_drop_stage') if target.name == 'prod' else var('drop_stage') }})
+          pattern = '{{ var("file_patterns")["articles_raw"] }}'
+          file_format = (format_name = '{{ target.database }}.{{ var("file_format") }}')
+          force = {{ 'TRUE' if (flags.FULL_REFRESH and target.name != 'prod') else 'FALSE' }}
+        - >-
+          {% if flags.FULL_REFRESH and target.name != 'prod' %}create or replace table{% else %}create table if not exists{% endif %}
+          {{ target.database }}.NORDWIND_OUTDOOR_SHOP_BRONZE.ORDERS_RAW (ORDER_NO varchar, POS varchar, CREATED varchar, CUSTOMER varchar, ARTICLE varchar, QTY varchar, PRICE varchar,
+          DISCOUNT varchar, CUR varchar, STATUS varchar, SHIP_TO varchar, EXPORTED_AT varchar,
+          _SOURCE_FILE varchar, _FILE_ROW_NUMBER number, _LOADED_AT timestamp_ltz default current_timestamp())
+        - >-
+          copy into {{ target.database }}.NORDWIND_OUTDOOR_SHOP_BRONZE.ORDERS_RAW (ORDER_NO, POS, CREATED, CUSTOMER, ARTICLE, QTY, PRICE, DISCOUNT, CUR, STATUS, SHIP_TO, EXPORTED_AT, _SOURCE_FILE, _FILE_ROW_NUMBER)
+          from (select $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, metadata$filename, metadata$file_row_number
+          from @{{ target.database ~ '.' ~ var('prod_drop_stage') if target.name == 'prod' else var('drop_stage') }})
+          pattern = '{{ var("file_patterns")["orders_raw"] }}'
+          file_format = (format_name = '{{ target.database }}.{{ var("file_format") }}')
+          force = {{ 'TRUE' if (flags.FULL_REFRESH and target.name != 'prod') else 'FALSE' }}
+    columns:
+      - name: SOURCE_NAME
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "Which partner the row came from: one short lower-case name per onboarded partner, the same on every row of that partner."
+      - name: CUSTOMER_ID
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "The customer number exactly as the partner issues it, trimmed of spaces and upper-cased. With SOURCE_NAME it identifies a row."
+      - name: CUSTOMER_TYPE
+        data_type: varchar(16)
+        constraints: [{type: not_null}]
+        description: "CONSUMER or BUSINESS (see section 7)."
+      - name: CITY
+        data_type: varchar(100)
+        description: "The customer's city as the partner writes it, trimmed; NULL when the partner gives none."
+      - name: COUNTRY_CODE
+        data_type: varchar(2)
+        description: "ISO 3166-1 alpha-2 code of the customer's country (DE, AT, CH); NULL when the partner gives none."
+      - name: REGISTERED_ON
+        data_type: date
+        constraints: [{type: not_null}]
+        description: "The day the customer account was opened."
+      - name: NEWSLETTER_OPT_IN
+        data_type: boolean
+        constraints: [{type: not_null}]
+        description: "Whether the customer agreed to receive the partner's newsletter, as the latest file says."
+      - name: SOURCE_FILE
+        data_type: varchar(255)
+        constraints: [{type: not_null}]
+        description: "Name of the file the current values of the row came from, without its folder."
+      - name: LOADED_AT_UTC
+        data_type: timestamp_ntz
+        constraints: [{type: not_null}]
+        description: "When the pipeline loaded that file, UTC."
+
+  - name: products
+    description: "Products: one row per article per partner, holding its latest catalog entry."
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: SOURCE_NAME
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "Which partner the row came from."
+      - name: SKU
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "The article code, trimmed of spaces and upper-cased. With SOURCE_NAME it identifies a row."
+      - name: PRODUCT_NAME
+        data_type: varchar(200)
+        constraints: [{type: not_null}]
+        description: "The article's name as the partner writes it, trimmed."
+      - name: CATEGORY
+        data_type: varchar(16)
+        constraints: [{type: not_null}]
+        description: "The article's category, one of the codes in section 7."
+      - name: LIST_PRICE
+        data_type: number(18,2)
+        constraints: [{type: not_null}]
+        description: "Price of one unit before any discount, in CURRENCY_CODE."
+      - name: CURRENCY_CODE
+        data_type: varchar(3)
+        constraints: [{type: not_null}]
+        description: "ISO 4217 code, upper case (EUR, USD)."
+      - name: IS_ACTIVE
+        data_type: boolean
+        constraints: [{type: not_null}]
+        description: "Whether the partner still sells the article. A discontinued article stays in the table."
+      - name: SOURCE_FILE
+        data_type: varchar(255)
+        constraints: [{type: not_null}]
+        description: "Name of the file the current values of the row came from, without its folder."
+      - name: LOADED_AT_UTC
+        data_type: timestamp_ntz
+        constraints: [{type: not_null}]
+        description: "When the pipeline loaded that file, UTC."
+
+  - name: orders
+    description: "Orders: one row per order per partner, holding the order's own details."
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: SOURCE_NAME
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "Which partner the row came from."
+      - name: ORDER_ID
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "The order number exactly as the partner issues it, trimmed of spaces and upper-cased. With SOURCE_NAME it identifies a row."
+      - name: CUSTOMER_ID
+        data_type: varchar(64)
+        description: "The customer who placed the order, as CUSTOMERS.CUSTOMER_ID stores it; NULL for a guest checkout."
+      - name: ORDERED_AT_UTC
+        data_type: timestamp_ntz
+        constraints: [{type: not_null}]
+        description: "When the order was placed, as a UTC instant. A time sent without a zone is converted from the partner's local time zone, which is confirmed with the partner's owner and never assumed."
+      - name: ORDER_DATE
+        data_type: date
+        constraints: [{type: not_null}]
+        description: "The calendar day the order was placed in the partner's local time zone: the business day daily sales count it on."
+      - name: CURRENCY_CODE
+        data_type: varchar(3)
+        constraints: [{type: not_null}]
+        description: "ISO 4217 code, upper case (EUR, USD)."
+      - name: SHIP_COUNTRY
+        data_type: varchar(2)
+        description: "ISO 3166-1 alpha-2 code of the delivery country (DE, AT, CH); NULL when the partner gives none."
+      - name: SOURCE_FILE
+        data_type: varchar(255)
+        constraints: [{type: not_null}]
+        description: "Name of the newest file that sent a line of the order, without its folder."
+      - name: LOADED_AT_UTC
+        data_type: timestamp_ntz
+        constraints: [{type: not_null}]
+        description: "When the pipeline loaded that file, UTC."
+
+  - name: order_line
+    description: "Order lines: one row per order line per partner, holding the latest state of the line."
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: SOURCE_NAME
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "Which partner the row came from."
+      - name: ORDER_ID
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "The order the line belongs to, as ORDERS.ORDER_ID stores it."
+      - name: LINE_NUMBER
+        data_type: number(9,0)
+        constraints: [{type: not_null}]
+        description: "Position of the line within its order, starting at 1. With SOURCE_NAME and ORDER_ID it identifies a row."
+      - name: SKU
+        data_type: varchar(64)
+        constraints: [{type: not_null}]
+        description: "The article ordered, as PRODUCTS.SKU stores it."
+      - name: QUANTITY
+        data_type: number(9,0)
+        constraints: [{type: not_null}]
+        description: "Units ordered on the line; at least 1."
+      - name: UNIT_PRICE
+        data_type: number(18,2)
+        constraints: [{type: not_null}]
+        description: "Price of one unit before discount, in the order's CURRENCY_CODE."
+      - name: DISCOUNT_PCT
+        data_type: number(5,2)
+        constraints: [{type: not_null}]
+        description: "Line discount in percent, 0 to 100; 0 when the partner gives none. 10, 10% and 10 % all mean 10."
+      - name: NET_AMOUNT
+        data_type: number(18,2)
+        constraints: [{type: not_null}]
+        description: "QUANTITY x UNIT_PRICE x (1 - DISCOUNT_PCT / 100), rounded half up to 2 decimals."
+      - name: LINE_STATUS
+        data_type: varchar(16)
+        constraints: [{type: not_null}]
+        description: "The latest status of the line: one of PLACED, SHIPPED, CANCELLED, RETURNED (see section 7)."
+      - name: SOURCE_FILE
+        data_type: varchar(255)
+        constraints: [{type: not_null}]
+        description: "Name of the file the current values of the row came from, without its folder."
+      - name: LOADED_AT_UTC
+        data_type: timestamp_ntz
+        constraints: [{type: not_null}]
+        description: "When the pipeline loaded that file, UTC."

@@ -1,0 +1,28 @@
+name: nordwind_outdoor_shop
+version: '1.0.0'
+config-version: 2
+profile: nordwind_outdoor_shop
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+vars:
+  source_name: nordwind_outdoor_shop
+  # Owner decision (OWNER_DECISIONS.md 1): Nordwind's order times are Europe/Berlin local time.
+  source_time_zone: Europe/Berlin
+  # Dev stage over the bucket folder; production reads its own stage in its own database.
+  drop_stage: ANALYTICS_DEV.PIPELINES.NORDWIND_OUTDOOR_SHOP_DROP
+  prod_drop_stage: PIPELINES.NORDWIND_OUTDOOR_SHOP_DROP
+  file_format: PIPELINES.NORDWIND_OUTDOOR_SHOP_CSV
+  # One pattern per feed: dated files only, never merchant.json (a reference file).
+  file_patterns:
+    customers_raw: '.*nordwind_customers_[0-9]{4}-[0-9]{2}-[0-9]{2}[.]csv'
+    articles_raw: '.*nordwind_articles_[0-9]{4}-[0-9]{2}-[0-9]{2}[.]csv'
+    orders_raw: '.*nordwind_orders_[0-9]{4}-[0-9]{2}-[0-9]{2}[.]csv'
+
+models:
+  nordwind_outdoor_shop:
+    +persist_docs:
+      relation: true
+      columns: true
