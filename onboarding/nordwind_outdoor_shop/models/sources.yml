@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: NORDWIND_OUTDOOR_SHOP_BRONZE
+    description: Every Nordwind file line as text, one table per feed, loaded only by this pipeline.
+    tables:
+      - name: customers_raw
+        identifier: CUSTOMERS_RAW
+      - name: articles_raw
+        identifier: ARTICLES_RAW
+      - name: orders_raw
+        identifier: ORDERS_RAW

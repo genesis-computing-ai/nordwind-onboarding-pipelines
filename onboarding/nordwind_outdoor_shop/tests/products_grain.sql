@@ -1,0 +1,5 @@
+-- One row per (SOURCE_NAME, SKU), key never empty.
+SELECT SOURCE_NAME, SKU, COUNT(*) AS N
+FROM {{ ref('products') }}
+GROUP BY SOURCE_NAME, SKU
+HAVING COUNT(*) > 1 OR SOURCE_NAME IS NULL OR SKU IS NULL
