@@ -1,0 +1,20 @@
+name: nordwind_isolated
+version: '1.0.0'
+config-version: 2
+profile: nordwind_isolated
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+vars:
+  source_name: nordwind_demo
+  source_time_zone: Europe/Berlin
+  # One existing synthetic fixture; merchant.json is never loaded.
+  fixture_file: nordwind_orders_2026-10-24.csv
+
+models:
+  nordwind_isolated:
+    +persist_docs:
+      relation: true
+      columns: true
