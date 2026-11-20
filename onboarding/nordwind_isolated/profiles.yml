@@ -1,0 +1,13 @@
+nordwind_isolated:
+  target: rehearsal
+  outputs:
+    rehearsal:
+      type: snowflake
+      # The supported Snowflake execution host supplies authentication.
+      account: ''
+      user: ''
+      role: "{{ env_var('DBT_ROLE') }}"
+      warehouse: "{{ env_var('DBT_WAREHOUSE') }}"
+      database: "{{ env_var('DBT_DATABASE') | upper }}"
+      schema: "NORDWIND_REHEARSAL_{{ env_var('DBT_RUN_ID') | upper }}_OUT"
+      threads: 1

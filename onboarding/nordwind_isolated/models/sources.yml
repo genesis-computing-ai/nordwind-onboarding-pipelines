@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: "{{ env_var('DBT_DATABASE') | upper }}"
+    schema: "NORDWIND_REHEARSAL_{{ env_var('DBT_RUN_ID') | upper }}_RAW"
+    description: Isolated raw synthetic Nordwind order fixture.
+    tables:
+      - name: nordwind_orders_raw
+        description: Lines loaded from the selected existing daily CSV.
