@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: NORDWIND_OUTDOOR_SHOP_2_BRONZE
+    description: "Every file of each feed as it landed: every file column as text, plus _source_file, _file_row_number and _loaded_at. Loaded by the pre_hooks of the customers model."
+    tables:
+      - name: customers_raw
+        identifier: CUSTOMERS_RAW
+        description: "nordwind_customers_<date>.csv files"
+      - name: articles_raw
+        identifier: ARTICLES_RAW
+        description: "nordwind_articles_<date>.csv files"
+      - name: orders_raw
+        identifier: ORDERS_RAW
+        description: "nordwind_orders_<date>.csv files"
